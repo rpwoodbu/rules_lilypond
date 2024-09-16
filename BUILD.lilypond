@@ -1,0 +1,11 @@
+sh_binary(
+    name = "lilypond",
+    srcs = ["bin/lilypond"],
+    data = [":files"],
+    visibility = ["@rules_lilypond//:__subpackages__"],
+)
+
+filegroup(
+    name = "files",
+    srcs = glob(["**"]),
+)
