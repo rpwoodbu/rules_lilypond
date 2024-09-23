@@ -1,0 +1,4 @@
+exports_files([
+    "part.ly.tpl",
+    "score.ly.tpl",
+])
