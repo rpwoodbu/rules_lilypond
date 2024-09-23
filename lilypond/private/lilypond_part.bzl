@@ -10,6 +10,7 @@ lilypond_part = rule(
             allow_single_file = [".ly.tpl"],
             default = "//lilypond:part.ly.tpl",
             doc = "Template for generating part."
-        )
+        ),
+        "_is_part": attr.bool(default = True),
     },
 )

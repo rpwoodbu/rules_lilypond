@@ -2,11 +2,14 @@
 
 {INCLUDES}
 
+\paper {
+{PAPER}
+}
+
 \header {
 {HEADER}
 }
 
-\new Staff {
-  \set Score.skipBars = ##t
-  \{MUSIC}
-}
+{QUOTES}
+
+{STAVES}
