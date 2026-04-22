@@ -8,7 +8,7 @@ def _lilypond_impl(ctx):
     urls = ["https://gitlab.com/lilypond/lilypond/-/releases/v{version}/downloads/lilypond-{version}-linux-x86_64.tar.gz".format(version = LILYPOND_VERSION)],
     integrity = "sha256-14QEF8MmuJ37dommY4i1CDTMdQO3JNtIHwUFDLztMwo=",
     strip_prefix = "lilypond-{}".format(LILYPOND_VERSION),
-    build_file = "BUILD.lilypond",
+    build_file = "lilypond.BUILD.bazel",
   )
 
 

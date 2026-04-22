@@ -1,5 +1,7 @@
 module(name = "rules_lilypond", version = "0.0.0")
 
+bazel_dep(name = "rules_shell", version = "0.8.0")
+
 lilypond = use_extension("//:extensions.bzl", "lilypond")
 
 use_repo(lilypond, "lilypond")
