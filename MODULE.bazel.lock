@@ -191,7 +191,7 @@
   "moduleExtensions": {
     "//:extensions.bzl%lilypond": {
       "general": {
-        "bzlTransitiveDigest": "OQMZgXrJSKPYX8sxXnQsTlPO+v22dT5ItJeEN7lD+tY=",
+        "bzlTransitiveDigest": "e00BL85PxGaaOzL7YepLgwc9qTXvkUsm09TMnJTX02w=",
         "usagesDigest": "2Z8Q/4cH3o9o0H3nmGtLLZWMpixtTLkoLax5Jy56lXk=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
@@ -201,10 +201,10 @@
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
               "urls": [
-                "https://gitlab.com/lilypond/lilypond/-/releases/v2.25.19/downloads/lilypond-2.25.19-linux-x86_64.tar.gz"
+                "https://gitlab.com/lilypond/lilypond/-/releases/v2.26.0/downloads/lilypond-2.26.0-linux-x86_64.tar.gz"
               ],
-              "integrity": "sha256-14QEF8MmuJ37dommY4i1CDTMdQO3JNtIHwUFDLztMwo=",
-              "strip_prefix": "lilypond-2.25.19",
+              "integrity": "sha256-zYoJep9SyyufTnkUd0eG8gP0/GH80pmvy7Y8I/pcayQ=",
+              "strip_prefix": "lilypond-2.26.0",
               "build_file": "@@//:lilypond.BUILD.bazel"
             }
           }
