@@ -24,6 +24,8 @@ def _generate_pdf(ctx, name, src, deps):
         ),
         executable = ctx.executable._lilypond,
         arguments = [args],
+        # Prevents `fontconfig` complaining about unwritable cache dir.
+        env = {"HOME": "/tmp"},
         mnemonic = "LilyPondPDF",
         progress_message = "Rendering LilyPond PDF %{output}",
     )
