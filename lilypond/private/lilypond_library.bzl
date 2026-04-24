@@ -3,7 +3,7 @@ load("//lilypond/private:provider.bzl", "LilyPondProvider")
 def _lilypond_library_impl(ctx):
     return [
         DefaultInfo(
-            files = depset(ctx.files.deps),
+            files = depset(ctx.files.srcs),
         ),
         LilyPondProvider(
             includes = depset(
