@@ -12,8 +12,4 @@
 
 {QUOTES}
 
-\score {
-\new StaffGroup <<
-{STAVES}
->>
-}
+{SCORES}
