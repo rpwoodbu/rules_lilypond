@@ -13,6 +13,8 @@ def _generate_pdf(ctx, name, src, deps):
         args.add("--verbose")
     else:
         args.add("--loglevel=WARN")
+    if ctx.attr.warning_as_error:
+        args.add("-dwarning-as-error")
     args.add("--include", ctx.workspace_name)
     args.add(src)
 
@@ -81,6 +83,7 @@ incrementality and is preferred.
             providers = [LilyPondProvider],
         ),
         "verbose": attr.bool(default = False),
+        "warning_as_error": attr.bool(default = True),
         "_lilypond": attr.label(
             cfg = "exec",
             executable = True,
