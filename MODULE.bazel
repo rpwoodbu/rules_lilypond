@@ -1,4 +1,4 @@
-module(name = "rules_lilypond", version = "0.0.1")
+module(name = "rules_lilypond", version = "0.0.2")
 
 bazel_dep(name = "rules_shell", version = "0.8.0")
 
