@@ -1,0 +1,20 @@
+load("@rules_lilypond//lilypond:defs.bzl", "lilypond_pdf", "lilypond_library", "lilypond_book")
+
+lilypond_pdf(
+    name = "hello_world",
+    deps = ["hello_world_book"],
+)
+
+lilypond_book(
+    name = "hello_world_book",
+    title = "Hello World",
+    composer = "Anonymous",
+    instrument = "Theremin I",
+    music_var = "helloWorldNotes",
+    deps = ["hello_world_lib"],
+)
+
+lilypond_library(
+    name = "hello_world_lib",
+    srcs = ["hello_world.ly"],
+)
