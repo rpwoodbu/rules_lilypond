@@ -1,4 +1,5 @@
 load("//lilypond/private:provider.bzl", "LilyPondProvider")
+load("@bazel_lib//lib:stamping.bzl", "STAMP_ATTRS", "maybe_stamp")
 
 _DERIVE_FROM_LABEL = "__DERIVE_FROM_LABEL__"
 
@@ -18,16 +19,29 @@ def _generate_pdf(ctx, name, src, deps):
     args.add("--include", ctx.workspace_name)
     args.add(src)
 
+    env = {
+        "RULES_LILYPOND_BINARY": ctx.executable._lilypond.path,
+        # Prevents `fontconfig` complaining about unwritable cache dir.
+        "HOME": "/tmp",
+    }
+
+    inputs = [src]
+
+    stamp = maybe_stamp(ctx)
+    if stamp:
+        env["RULES_LILYPOND_STABLE_STATUS"] = stamp.stable_status_file.path
+        inputs.append(stamp.stable_status_file)
+
     ctx.actions.run(
         outputs = [pdf],
         inputs = depset(
-            [src],
+            inputs,
             transitive = [d[LilyPondProvider].includes for d in deps],
         ),
-        executable = ctx.executable._lilypond,
+        executable = ctx.executable._lilypond_wrapper,
+        tools = [ctx.executable._lilypond],
         arguments = [args],
-        # Prevents `fontconfig` complaining about unwritable cache dir.
-        env = {"HOME": "/tmp"},
+        env = env,
         mnemonic = "LilyPondPDF",
         progress_message = "Rendering LilyPond PDF %{output}",
     )
@@ -72,7 +86,7 @@ former is good for ease-of-use in small projects, but the latter preserves
 incrementality and is preferred.
 """,
     implementation = _lilypond_pdf_impl,
-    attrs = {
+    attrs = STAMP_ATTRS | {
         "srcs": attr.label_list(
             doc = "LilyPond files to render.",
             allow_files = [".ly"],
@@ -88,6 +102,11 @@ incrementality and is preferred.
             cfg = "exec",
             executable = True,
             default = "@lilypond",
+        ),
+        "_lilypond_wrapper": attr.label(
+            cfg = "exec",
+            executable = True,
+            default = "@rules_lilypond//lilypond/private:lilypond_wrapper",
         ),
     },
 )
