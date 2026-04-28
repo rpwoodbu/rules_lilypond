@@ -1,14 +1,15 @@
 load("//lilypond/private:lilypond_book.bzl", "lilypond_book")
 load("//lilypond/private:lilypond_pdf.bzl", "lilypond_pdf")
 
-def _lilypond_parts_pdfs_impl(name, visibility, music_inst_map, warning_as_error, **kwargs):
+def _lilypond_parts_pdfs_impl(name, visibility, dep_map, music_inst_map, warning_as_error, **kwargs):
     all_parts = []
-    for music_var, instrument in music_inst_map.items():
+    for dep, music_var in dep_map.items():
         part_name = "{}_{}_book".format(name, music_var)
         lilypond_book(
             name = part_name,
             music_var = music_var,
-            instrument = instrument,
+            instrument = music_inst_map.get(music_var, ""),
+            deps = [dep],
             visibility = visibility,
             **kwargs,
         )
@@ -31,11 +32,17 @@ lilypond_parts_pdfs = macro(
     implementation = _lilypond_parts_pdfs_impl,
     inherit_attrs = lilypond_book,
     attrs = {
+        "dep_map": attr.label_keyed_string_dict(
+            doc = "Map of labels of `lilypond_library` targets to music variable names.",
+            mandatory = True,
+            configurable = False,
+        ),
         "music_inst_map": attr.string_dict(
             doc = "Map of music variable names to instrument names.",
             configurable = False,
         ),
         "warning_as_error": attr.bool(default = True),
+        "deps": None,
         "music_var": None,
         "instrument": None,
     },

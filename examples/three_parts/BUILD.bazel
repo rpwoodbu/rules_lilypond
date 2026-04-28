@@ -2,6 +2,11 @@ load("@rules_lilypond//lilypond:defs.bzl", "lilypond_pdf", "lilypond_library", "
 
 TITLE = "Excerpt from the 7th Symphony"
 COMPOSER = "Gustav Mahler"
+DEP_MAP = {
+    ":tpt1": "tptOne",
+    ":tpt2": "tptTwo",
+    ":tpt3": "tptThree",
+}
 MUSIC_INST_MAP = {
     "tptOne": "Trumpet I in Bb",
     "tptTwo": "Trumpet II in Bb",
@@ -23,8 +28,8 @@ lilypond_parts_pdfs(
     music_inst_map = MUSIC_INST_MAP,
     title = TITLE,
     composer = COMPOSER,
-    deps = [":notes"],
     warning_as_error = False,  # TODO: Fix "decrescendo too small".
+    dep_map = DEP_MAP,
 )
 
 lilypond_book(
@@ -34,14 +39,20 @@ lilypond_book(
     music_short_inst_map = MUSIC_SHORT_INST_MAP,
     title = TITLE,
     composer = COMPOSER,
-    deps = [":notes"],
+    deps = DEP_MAP.keys(),
 )
 
 lilypond_library(
-    name = "notes",
-    srcs = [
-      "tpt1-notes.ly",
-      "tpt2-notes.ly",
-      "tpt3-notes.ly",
-    ],
+    name = "tpt1",
+    srcs = ["tpt1-notes.ly"],
+)
+
+lilypond_library(
+    name = "tpt2",
+    srcs = ["tpt2-notes.ly"],
+)
+
+lilypond_library(
+    name = "tpt3",
+    srcs = ["tpt3-notes.ly"],
 )
