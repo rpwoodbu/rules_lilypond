@@ -36,7 +36,7 @@ def _generate_pdf(ctx, name, src, deps):
         outputs = [pdf],
         inputs = depset(
             inputs,
-            transitive = [d[LilyPondProvider].includes for d in deps],
+            transitive = deps,
         ),
         executable = ctx.executable._lilypond_wrapper,
         tools = [ctx.executable._lilypond],
@@ -58,13 +58,17 @@ def _lilypond_pdf_impl(ctx):
     if ctx.attr.srcs:
         for src in ctx.files.srcs:
             name = gen_name(len(pdfs), len(ctx.files.srcs) > 1)
-            pdfs.append(_generate_pdf(ctx, name, src, ctx.attr.deps))
+            pdfs.append(_generate_pdf(ctx, name, src, [d[LilyPondProvider].includes for d in ctx.attr.deps]))
     else:
         for dep in ctx.attr.deps:
-            if len(dep.files.to_list()) != 1:
-                fail("Cannot render deps that are not single-src.")
-            name = gen_name(len(pdfs), len(ctx.attr.deps) > 1)
-            pdfs.append(_generate_pdf(ctx, name, dep.files.to_list()[0], [dep]))
+            for r in dep[LilyPondProvider].renderables:
+                if len(r.renderable_file.to_list()) != 1:
+                    fail("`renderable_file` must contain exactly one file")
+                if len(dep[LilyPondProvider].renderables) > 1:
+                    name = "{}_{}.pdf".format(ctx.attr.name, r.name)
+                else:
+                    name = gen_name(len(pdfs), False)
+                pdfs.append(_generate_pdf(ctx, name, r.renderable_file.to_list()[0], [r.transitive]))
 
     return DefaultInfo(files=depset(pdfs))
 

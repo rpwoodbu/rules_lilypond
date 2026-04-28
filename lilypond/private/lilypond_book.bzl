@@ -79,6 +79,11 @@ def lilypond_book_impl(ctx):
         DefaultInfo(files = depset([out])),
         LilyPondProvider(
             includes = depset(transitive = includes_depsets),
+            renderables = [struct(
+                name = ctx.attr.name,
+                renderable_file = depset([out]),
+                transitive = depset(transitive = includes_depsets),
+            )],
         ),
     ]
 
@@ -99,6 +104,11 @@ lilypond_book = rule(
             doc = "List of movement names in the order they should be " +
                   "rendered. Use with the `movement` attribute of " +
                   "`lilypond_library`.",
+        ),
+        "parts": attr.bool(
+            doc = "Whether to generate separate PDFs for each part. If " +
+                  "False, a full score will be generated.",
+            default = False,
         ),
         "skip_bars": attr.bool(
             doc = "Whether to produce multimeasure rests. Set this to " +
