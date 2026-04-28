@@ -9,12 +9,12 @@ lilypond_book(
     name = "hello_world_book",
     title = "Hello, World!",
     composer = "Anonymous",
-    instrument = "Theremin I",
-    music_var = "helloWorldNotes",
     deps = ["hello_world_lib"],
 )
 
 lilypond_library(
     name = "hello_world_lib",
     srcs = ["hello_world.ly"],
+    music_var = "helloWorldNotes",
+    instrument = "Theremin I",
 )
