@@ -196,7 +196,7 @@
     "//:extensions.bzl%lilypond": {
       "general": {
         "bzlTransitiveDigest": "e00BL85PxGaaOzL7YepLgwc9qTXvkUsm09TMnJTX02w=",
-        "usagesDigest": "x6rrlcoZKgQr4b5tGb5bNvJUMwvEi0Qkbjhy8aSuwfc=",
+        "usagesDigest": "1WU+uSZ6WPYralzGU0qz2TzgM3IugruUG4+XM/u2I+g=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
         ],
