@@ -7,7 +7,7 @@ lilypond_pdf(
 
 lilypond_book(
     name = "hello_world_book",
-    title = "Hello World",
+    title = "Hello, World!",
     composer = "Anonymous",
     instrument = "Theremin I",
     music_var = "helloWorldNotes",
