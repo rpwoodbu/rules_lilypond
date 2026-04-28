@@ -23,7 +23,7 @@ In order to produce numerous parts and scores, there is a lot of boilerplate and
 > [!NOTE]
 > If you're not familiar with [Bazel](https://bazel.build/), install [Bazelisk](https://github.com/bazelbuild/bazelisk) (a small Bazel launcher), create a new directory, and just place the files from the following instructions in that directory.
 
-`rules_bazel` is not in the [Bazel Central Registry](https://registry.bazel.build/) (yet), so we need to use `archive_override`. Put this in your `MODULE.bazel`:
+`rules_lilypond` is not in the [Bazel Central Registry](https://registry.bazel.build/) (yet), so we need to use `archive_override`. Put this in your `MODULE.bazel`:
 
 ```python
 bazel_dep(name = "rules_lilypond", version = "0.0.4")
