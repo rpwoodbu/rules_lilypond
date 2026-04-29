@@ -1,5 +1,9 @@
 load("@rules_lilypond//lilypond:defs.bzl", "lilypond_pdf", "lilypond_library", "lilypond_book")
 
+# For testing.
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@bazel_skylib//rules:select_file.bzl", "select_file")
+
 TITLE = "Excerpt from the 7th Symphony"
 COMPOSER = "Gustav Mahler"
 
@@ -61,3 +65,25 @@ lilypond_library(
     instrument = "Trumpet III in Bb",
     short_instrument = "Tpt III",
 )
+
+# The remainder of the file is for testing. You may disregard.
+
+diff_test(
+    name = "score_book_test",
+    file1 = "testdata/score_book.ly",
+    file2 = ":score_book",
+)
+
+PART_NAMES = ["tptOne", "tptTwo", "tptThree"]
+
+[diff_test(
+    name = "parts_book_{}_test".format(name),
+    file1 = "testdata/parts_book_{}.ly".format(name),
+    file2 = ":parts_book_{}".format(name),
+) for name in PART_NAMES]
+
+[select_file(
+    name = "parts_book_{}".format(name),
+    srcs = ":parts_book",
+    subpath = "parts_book_{}.ly".format(name),
+) for name in PART_NAMES]

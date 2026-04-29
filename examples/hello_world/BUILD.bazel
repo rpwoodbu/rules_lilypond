@@ -1,5 +1,8 @@
 load("@rules_lilypond//lilypond:defs.bzl", "lilypond_pdf", "lilypond_library", "lilypond_book")
 
+# For testing.
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+
 lilypond_pdf(
     name = "hello_world",
     deps = [":hello_world_book"],
@@ -17,4 +20,12 @@ lilypond_library(
     srcs = ["hello_world.ly"],
     music_var = "helloWorldNotes",
     instrument = "Theremin I",
+)
+
+# The remainder of the file is for testing. You may disregard.
+
+diff_test(
+    name = "hello_world_test",
+    file1 = "testdata/hello_world_book.ly",
+    file2 = ":hello_world_book",
 )
