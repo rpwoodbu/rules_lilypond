@@ -1,22 +1,11 @@
 load("//lilypond/private:provider.bzl", "LilyPondProvider")
 load("//:extensions.bzl", "LILYPOND_VERSION")
 
-def lilypond_book_impl(ctx):
-    includes_depsets = [d[LilyPondProvider].includes for d in ctx.attr.deps]
-    includes = [i.path for ds in includes_depsets for i in ds.to_list()]
-
-    movement_dep_map = {}
-    instruments = set()
-    for dep in ctx.attr.deps:
-        movement_dep_map.setdefault(dep[LilyPondProvider].movement, []).append(dep)
-        instrument = dep[LilyPondProvider].instrument
-        if instrument:
-            instruments.add(instrument)
-
+# Common logic for generating scores and parts.
+def _generate_book(ctx, name, includes, movement_dep_map, instrument):
     header = []
-    if len(instruments) == 1:
-        # This is a single part. Show the instrument name.
-        header.append('instrument = "{}"'.format(instruments.pop()))
+    if instrument:
+        header.append('instrument = "{}"'.format(instrument))
     if ctx.attr.composer:
         header.append('composer = "{}"'.format(ctx.attr.composer))
     if ctx.attr.title:
@@ -68,13 +57,34 @@ def lilypond_book_impl(ctx):
 
     subs.add("{SCORES}", "\n".join(scores))
 
-    out = ctx.actions.declare_file(ctx.label.name + ".ly")
+    out = ctx.actions.declare_file(name + ".ly")
     ctx.actions.expand_template(
         output = out,
         template = ctx.file.template,
         computed_substitutions = subs,
     )
 
+    return out
+
+# Generate a full score containing all parts.
+def _generate_score(ctx):
+    includes_depsets = [d[LilyPondProvider].includes for d in ctx.attr.deps]
+    includes = [i.path for ds in includes_depsets for i in ds.to_list()]
+
+    movement_dep_map = {}
+    instruments = set()
+    for dep in ctx.attr.deps:
+        movement_dep_map.setdefault(dep[LilyPondProvider].movement, []).append(dep)
+        instrument = dep[LilyPondProvider].instrument
+        if instrument:
+            instruments.add(instrument)
+
+    instrument = None
+    if len(instruments) == 1:
+        # This is a single part. Show the instrument name.
+        instrument = instruments.pop()
+
+    out = _generate_book(ctx, ctx.attr.name, includes, movement_dep_map, instrument)
     return [
         DefaultInfo(files = depset([out])),
         LilyPondProvider(
@@ -87,9 +97,48 @@ def lilypond_book_impl(ctx):
         ),
     ]
 
+# Generate a separate book for each part. Each book will contain all movements
+# for that part.
+def _generate_parts(ctx):
+    books = []
+    renderables = []
+    for dep in ctx.attr.deps:
+        if dep[LilyPondProvider].music_var == "":
+            continue
+        includes_depset = dep[LilyPondProvider].includes
+        movement_dep_map = {m: [dep] for m in ctx.attr.movements}
+        if len(movement_dep_map) == 0:
+            movement_dep_map[""] = [dep]
+        book = _generate_book(
+            ctx,
+            "{}_{}".format(ctx.attr.name, dep[LilyPondProvider].music_var),
+            [i.path for i in includes_depset.to_list()],
+            movement_dep_map,
+            dep[LilyPondProvider].instrument,
+        )
+        books.append(book)
+        renderables.append(struct(
+            name = dep[LilyPondProvider].music_var,
+            renderable_file = depset([book]),
+            transitive = includes_depset,
+        ))
+
+    return [
+        DefaultInfo(files = depset(books)),
+        LilyPondProvider(
+            renderables = renderables,
+        ),
+    ]
+
+def _lilypond_book_impl(ctx):
+    if ctx.attr.parts:
+        return _generate_parts(ctx)
+    else:
+        return _generate_score(ctx)
+
 lilypond_book = rule(
     doc = """Generates a LilyPond "book" file.""",
-    implementation = lilypond_book_impl,
+    implementation = _lilypond_book_impl,
     attrs = {
         "composer": attr.string(
             doc = "Name of composer.",
@@ -106,8 +155,8 @@ lilypond_book = rule(
                   "`lilypond_library`.",
         ),
         "parts": attr.bool(
-            doc = "Whether to generate separate PDFs for each part. If " +
-                  "False, a full score will be generated.",
+            doc = "Whether to generate separate books for each part. If " +
+                  "False, a single book (full score) will be generated.",
             default = False,
         ),
         "skip_bars": attr.bool(

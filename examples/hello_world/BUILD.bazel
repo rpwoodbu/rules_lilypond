@@ -2,14 +2,14 @@ load("@rules_lilypond//lilypond:defs.bzl", "lilypond_pdf", "lilypond_library", "
 
 lilypond_pdf(
     name = "hello_world",
-    deps = ["hello_world_book"],
+    deps = [":hello_world_book"],
 )
 
 lilypond_book(
     name = "hello_world_book",
     title = "Hello, World!",
     composer = "Anonymous",
-    deps = ["hello_world_lib"],
+    deps = [":hello_world_lib"],
 )
 
 lilypond_library(
