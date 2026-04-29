@@ -10,9 +10,9 @@ LilyPond is very sensitive to which version you use, even when using the `\versi
 
 **You don't even need to have LilyPond or Bazel installed on your machine!** All you need is [Bazelisk](https://github.com/bazelbuild/bazelisk) (a small Bazel launcher).
 
-### Incrementality
+### Incrementality and parallelism
 
-When working with larger projects, it saves time to use a proper build system so that only the parts which need to be rebuilt will be.
+When working with larger projects, it saves time to use a proper build system. Bazel will not rebuild a PDF if its music hasn't changed. Bazel will also run multiple LilyPond invocations in parallel, utilizing the full power of your machine.
 
 ### Boilerplate
 
