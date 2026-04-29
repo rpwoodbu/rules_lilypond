@@ -1,0 +1,69 @@
+load("@rules_lilypond//lilypond:defs.bzl", "lilypond_pdf", "lilypond_library", "lilypond_book")
+
+# For testing.
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@bazel_skylib//rules:select_file.bzl", "select_file")
+
+lilypond_pdf(
+    name = "cycles",
+    deps = [":parts"],
+)
+
+lilypond_book(
+    name = "parts",
+    parts = True,
+    title = "Cycles",
+    composer = "Anonymous (or maybe Holst)",
+    # This is a map which generates the `\addQuote` statements. The keys are the
+    # quote names, and the values are the corresponding music variables. It is
+    # common for them to be the same.
+    quotes = {
+        "soprano": "soprano",
+        "bass": "bass",
+    },
+    deps = [
+        ":soprano",
+        ":bass",
+    ],
+)
+
+# Normally you would expect to take a dep on the library that provides the cues,
+# but since both parts cue each other, that would create a dependency cycle, and
+# Bazel would fail. So instead, we put all the music in the `srcs` of each
+# library.
+
+lilypond_library(
+    name = "bass",
+    srcs = [
+        "bass.ly",
+        "soprano.ly",  # For cues.
+    ],
+    music_var = "bass",
+    instrument = "Bass",
+)
+
+lilypond_library(
+    name = "soprano",
+    srcs = [
+        "soprano.ly",
+        "bass.ly",  # For cues.
+    ],
+    music_var = "soprano",
+    instrument = "Soprano",
+)
+
+# The remainder of the file is for testing. You may disregard.
+
+PART_NAMES = ["soprano", "bass"]
+
+[diff_test(
+    name = "parts_{}_test".format(name),
+    file1 = "testdata/parts_{}.ly".format(name),
+    file2 = ":parts_{}".format(name),
+) for name in PART_NAMES]
+
+[select_file(
+    name = "parts_{}".format(name),
+    srcs = ":parts",
+    subpath = "parts_{}.ly".format(name),
+) for name in PART_NAMES]
