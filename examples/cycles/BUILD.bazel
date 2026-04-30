@@ -54,7 +54,7 @@ lilypond_library(
 
 # The remainder of the file is for testing. You may disregard.
 
-PART_NAMES = ["soprano", "bass"]
+PART_NAMES = ["Soprano", "Bass"]
 
 [diff_test(
     name = "parts_{}_test".format(name),

@@ -20,16 +20,15 @@ def _generate_book(ctx, name, includes, movement_dep_map, instrument):
     subs.add("{HEADER}", "\n".join(header))
     subs.add("{QUOTES}", "\n".join(['\\addQuote "{}" {{ \\{} }}'.format(ref, music) for music, ref in ctx.attr.quotes.items()]))
 
-    movements = ctx.attr.movements if len(ctx.attr.movements) > 0 else [""]
     scores = []
-    for movement in movements:
+    for movement, deps in movement_dep_map.items():
         scores.extend([
             '\\score {',
             '  {',
             '    \\new StaffGroup <<',
         ])
 
-        for dep in movement_dep_map[movement]:
+        for dep in deps:
             if ctx.attr.staff_with:
                 scores.append('      \\new Staff \\with {{ {} }} {{'.format(ctx.attr.staff_with))
             else:
@@ -100,25 +99,38 @@ def _generate_score(ctx):
 # Generate a separate book for each part. Each book will contain all movements
 # for that part.
 def _generate_parts(ctx):
-    books = []
-    renderables = []
+    if ctx.attr.instrument:
+        fail("Cannot specify instrument name when generating parts.")
+
+    instrument_movement_dep_map = {}
     for dep in ctx.attr.deps:
         if dep[LilyPondProvider].music_var == "":
             continue
-        includes_depset = dep[LilyPondProvider].includes
-        movement_dep_map = {m: [dep] for m in ctx.attr.movements}
-        if len(movement_dep_map) == 0:
-            movement_dep_map[""] = [dep]
+        instrument_movement_dep_map \
+            .setdefault(dep[LilyPondProvider].instrument, {}) \
+            .setdefault(dep[LilyPondProvider].movement, []) \
+            .append(dep)
+
+    books = []
+    renderables = []
+    for instrument, movement_dep_map in instrument_movement_dep_map.items():
+        includes_depset = depset(
+            transitive = [d[LilyPondProvider].includes for deps in movement_dep_map.values() for d in deps])
+        quotes = {}
+        name = instrument.replace(" ", "_")
+        for deps in movement_dep_map.values():
+            for dep in deps:
+                quotes.update(dep[LilyPondProvider].quotes)
         book = _generate_book(
             ctx,
-            "{}_{}".format(ctx.attr.name, dep[LilyPondProvider].music_var),
+            "{}_{}".format(ctx.attr.name, name),
             [i.path for i in includes_depset.to_list()],
             movement_dep_map,
-            dep[LilyPondProvider].instrument,
+            instrument,
         )
         books.append(book)
         renderables.append(struct(
-            name = dep[LilyPondProvider].music_var,
+            name = name,
             renderable_file = depset([book]),
             transitive = includes_depset,
         ))
@@ -148,11 +160,6 @@ lilypond_book = rule(
         ),
         "subtitle": attr.string(
             doc = "Subtitle of piece.",
-        ),
-        "movements": attr.string_list(
-            doc = "List of movement names in the order they should be " +
-                  "rendered. Use with the `movement` attribute of " +
-                  "`lilypond_library`.",
         ),
         "parts": attr.bool(
             doc = "Whether to generate separate books for each part. If " +

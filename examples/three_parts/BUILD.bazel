@@ -74,7 +74,11 @@ diff_test(
     file2 = ":score_book",
 )
 
-PART_NAMES = ["tptOne", "tptTwo", "tptThree"]
+PART_NAMES = [
+    "Trumpet_I_in_Bb",
+    "Trumpet_II_in_Bb",
+    "Trumpet_III_in_Bb",
+]
 
 [diff_test(
     name = "parts_book_{}_test".format(name),
