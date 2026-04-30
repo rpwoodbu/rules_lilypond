@@ -10,6 +10,7 @@ def _lilypond_library_impl(ctx):
             movement = ctx.attr.movement,
             instrument = ctx.attr.instrument,
             short_instrument = ctx.attr.short_instrument,
+            quotes = ctx.attr.quotes,
             includes = depset(
                 ctx.files.srcs,
                 transitive = [d[LilyPondProvider].includes for d in ctx.attr.deps],
@@ -37,6 +38,10 @@ lilypond_library = rule(
         ),
         "short_instrument": attr.string(
             doc = "Short name of the instrument. Use with `instrument`.",
+        ),
+        "quotes": attr.string_dict(
+            doc = "Map of music variables to their referenced names when " +
+                  "using \\cueDuring.",
         ),
         "deps": attr.label_list(
             providers = [LilyPondProvider],

@@ -14,13 +14,6 @@ lilypond_book(
     parts = True,
     title = "Cycles",
     composer = "Anonymous (or maybe Holst)",
-    # This is a map which generates the `\addQuote` statements. The keys are the
-    # quote names, and the values are the corresponding music variables. It is
-    # common for them to be the same.
-    quotes = {
-        "soprano": "soprano",
-        "bass": "bass",
-    },
     deps = [
         ":soprano",
         ":bass",
@@ -40,6 +33,13 @@ lilypond_library(
     ],
     music_var = "bass",
     instrument = "Bass",
+    # This is a map which generates the `\addQuote` statements. The keys are the
+    # music variables containing the quoted music, and the values are the names
+    # by your `\cueDuring` statements refer to them. It is common for them to be
+    # the same.
+    quotes = {
+        "soprano": "soprano",
+    },
 )
 
 lilypond_library(
@@ -50,6 +50,9 @@ lilypond_library(
     ],
     music_var = "soprano",
     instrument = "Soprano",
+    quotes = {
+        "bass": "bass",
+    },
 )
 
 # The remainder of the file is for testing. You may disregard.

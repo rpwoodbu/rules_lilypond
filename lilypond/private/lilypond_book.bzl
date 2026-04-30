@@ -2,7 +2,7 @@ load("//lilypond/private:provider.bzl", "LilyPondProvider")
 load("//:extensions.bzl", "LILYPOND_VERSION")
 
 # Common logic for generating scores and parts.
-def _generate_book(ctx, name, includes, movement_dep_map, instrument):
+def _generate_book(ctx, name, includes, movement_dep_map, instrument, quotes):
     header = []
     if instrument:
         header.append('instrument = "{}"'.format(instrument))
@@ -18,7 +18,8 @@ def _generate_book(ctx, name, includes, movement_dep_map, instrument):
     subs.add("{INCLUDES}", "\n".join(['\\include "{}"'.format(i) for i in includes]))
     subs.add("{PAPER}", "\n".join(ctx.attr.paper))
     subs.add("{HEADER}", "\n".join(header))
-    subs.add("{QUOTES}", "\n".join(['\\addQuote "{}" {{ \\{} }}'.format(ref, music) for music, ref in ctx.attr.quotes.items()]))
+    subs.add("{QUOTES}", "\n".join(
+        ['\\addQuote "{}" {{ \\{} }}'.format(ref, music) for music, ref in quotes.items()]))
 
     scores = []
     for movement, deps in movement_dep_map.items():
@@ -72,11 +73,13 @@ def _generate_score(ctx):
 
     movement_dep_map = {}
     instruments = set()
+    quotes = {}
     for dep in ctx.attr.deps:
         movement_dep_map.setdefault(dep[LilyPondProvider].movement, []).append(dep)
         instrument = dep[LilyPondProvider].instrument
         if instrument:
             instruments.add(instrument)
+        quotes.update(dep[LilyPondProvider].quotes)
 
     instrument = None
     if ctx.attr.instrument:
@@ -85,7 +88,8 @@ def _generate_score(ctx):
         # This is a single part. Show the instrument name.
         instrument = instruments.pop()
 
-    out = _generate_book(ctx, ctx.attr.name, includes, movement_dep_map, instrument)
+    out = _generate_book(
+        ctx, ctx.attr.name, includes, movement_dep_map, instrument, quotes)
     return [
         DefaultInfo(files = depset([out])),
         LilyPondProvider(
@@ -132,6 +136,7 @@ def _generate_parts(ctx):
             [i.path for i in includes_depset.to_list()],
             movement_dep_map,
             instrument,
+            quotes = quotes,
         )
         books.append(book)
         renderables.append(struct(
@@ -184,9 +189,6 @@ lilypond_book = rule(
         ),
         "paper": attr.string_list(
             doc = "List of settings for \\paper.",
-        ),
-        "quotes": attr.string_dict(
-            doc = "Map of LilyPond variables containing music for \\addQuote to their referenced names.",
         ),
         "staff": attr.string_list(
             doc = "List of settings for each \\staff.",

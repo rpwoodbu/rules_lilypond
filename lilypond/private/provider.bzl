@@ -5,6 +5,7 @@ LilyPondProvider = provider(
         "movement": "Name of the movement",
         "instrument": "Name of the instrument",
         "short_instrument": "Short name of the instrument",
+        "quotes": "Map of music variables to their referenced names for \\addQuote",
         "includes": "depset of files that may be included",
         "renderables": "List of structs containing information about renderable deps",
         # renderables fields:

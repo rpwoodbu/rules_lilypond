@@ -28,7 +28,6 @@ title = "Cycles"
     }
 }
 
-\addQuote "soprano" { \soprano }
 \addQuote "bass" { \bass }
 
 \score {
