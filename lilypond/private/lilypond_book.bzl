@@ -79,7 +79,9 @@ def _generate_score(ctx):
             instruments.add(instrument)
 
     instrument = None
-    if len(instruments) == 1:
+    if ctx.attr.instrument:
+       instrument = ctx.attr.instrument 
+    elif len(instruments) == 1:
         # This is a single part. Show the instrument name.
         instrument = instruments.pop()
 
@@ -99,6 +101,9 @@ def _generate_score(ctx):
 # Generate a separate book for each part. Each book will contain all movements
 # for that part.
 def _generate_parts(ctx):
+    if ctx.attr.instrument:
+        fail("Cannot specify instrument name when generating parts.")
+
     if ctx.attr.instrument:
         fail("Cannot specify instrument name when generating parts.")
 
@@ -152,6 +157,12 @@ lilypond_book = rule(
     doc = """Generates a LilyPond "book" file.""",
     implementation = _lilypond_book_impl,
     attrs = {
+        "instrument": attr.string(
+            doc = "Override name of instrument. Usually the instrument name " +
+                  "flows from the `lilypond_library`, but this is useful " +
+                  "when combining parts into a single book. Cannot be used " +
+                  "if `parts` is True. ",
+        ),
         "composer": attr.string(
             doc = "Name of composer.",
         ),
