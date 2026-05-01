@@ -1,5 +1,5 @@
 load("//lilypond/private:provider.bzl", "LilyPondProvider")
-load("//:extensions.bzl", "LILYPOND_VERSION")
+load("//lilypond:extensions.bzl", "LILYPOND_VERSION")
 
 # Common logic for generating scores and parts.
 def _generate_book(ctx, name, includes, movement_dep_map, instrument, quotes):

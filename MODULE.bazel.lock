@@ -194,10 +194,10 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
-    "//:extensions.bzl%lilypond": {
+    "//lilypond:extensions.bzl%lilypond": {
       "general": {
         "bzlTransitiveDigest": "e00BL85PxGaaOzL7YepLgwc9qTXvkUsm09TMnJTX02w=",
-        "usagesDigest": "lrGmEGZ3Q3MI7DLmr6rbgRIu8lsU9u9TN53C4dv2paQ=",
+        "usagesDigest": "apCUvGhNeMEL5D+hBXnkRzxJiXLCwCgj4E+VLpHcrUI=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
         ],
@@ -210,7 +210,7 @@
               ],
               "integrity": "sha256-zYoJep9SyyufTnkUd0eG8gP0/GH80pmvy7Y8I/pcayQ=",
               "strip_prefix": "lilypond-2.26.0",
-              "build_file": "@@//:lilypond.BUILD.bazel"
+              "build_file": "@@//lilypond:lilypond.BUILD.bazel"
             }
           }
         }
