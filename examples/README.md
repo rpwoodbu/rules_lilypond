@@ -9,6 +9,8 @@ programmatically-generated LilyPond books.
 bazel build //examples/hello_world
 ```
 
+[See the result.](https://rpwoodbu.github.io/rules_lilypond/hello_world.pdf)
+
 ## Multiple parts
 
 Here's a short excerpt which demonstrates how to produce multiple parts and a full score.
@@ -17,6 +19,13 @@ Here's a short excerpt which demonstrates how to produce multiple parts and a fu
 bazel build //examples/three_parts:parts
 bazel build //examples/three_parts:score
 ```
+
+See the results:
+- [Score](https://rpwoodbu.github.io/rules_lilypond/score.pdf)
+- Parts:
+    - [Trumpet I in Bb](https://rpwoodbu.github.io/rules_lilypond/parts_Trumpet_I_in_Bb.pdf)
+    - [Trumpet II in Bb](https://rpwoodbu.github.io/rules_lilypond/parts_Trumpet_II_in_Bb.pdf)
+    - [Trumpet III in Bb](https://rpwoodbu.github.io/rules_lilypond/parts_Trumpet_III_in_Bb.pdf)
 
 ## Movements
 
@@ -28,6 +37,12 @@ movement name. Add them as deps to `lilypond_book` in movement order.
 bazel build //examples/movements
 ```
 
+See the results:
+- [Score](https://rpwoodbu.github.io/rules_lilypond/movements_score.pdf)
+- Parts:
+    - [Soprano](https://rpwoodbu.github.io/rules_lilypond/movements_Soprano.pdf)
+    - [Bass](https://rpwoodbu.github.io/rules_lilypond/movements_Bass.pdf)
+
 ## Cues and cycles
 
 To do cues which "quote" other parts, you would ordinarily depend on the `lilypond_library` that defines the cued notes. But sometimes two parts take cues from each other, creating a cycle which breaks Bazel. This example shows you how to deal with that.
@@ -35,6 +50,10 @@ To do cues which "quote" other parts, you would ordinarily depend on the `lilypo
 ```sh
 bazel build //examples/cycles
 ```
+
+See the results:
+- [Soprano](https://rpwoodbu.github.io/rules_lilypond/cycles_Soprano.pdf)
+- [Bass](https://rpwoodbu.github.io/rules_lilypond/cycles_Bass.pdf)
 
 ## Stamp revision information
 

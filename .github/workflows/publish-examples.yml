@@ -1,0 +1,57 @@
+name: Build and Publish Examples
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Example PDFs
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
+
+      - name: Discover and build lilypond_pdf targets
+        run: |
+          targets=$(bazel query 'kind("lilypond_pdf", //examples/...)')
+          bazel build $targets
+
+      - name: Collect PDFs
+        run: |
+          mkdir -p pdfs
+          find bazel-bin/examples -name "*.pdf" -type f -exec cp {} pdfs/ \;
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: 'pdfs'
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.0
