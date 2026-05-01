@@ -18,6 +18,16 @@ bazel build //examples/three_parts:parts
 bazel build //examples/three_parts:score
 ```
 
+## Movements
+
+When working with pieces having multiple movements, put each part and movement
+in a separate file, and define a `lilypond_library` for each, annotated with the
+movement name. Add them as deps to `lilypond_book` in movement order.
+
+```sh
+bazel build //examples/movements
+```
+
 ## Cues and cycles
 
 To do cues which "quote" other parts, you would ordinarily depend on the `lilypond_library` that defines the cued notes. But sometimes two parts take cues from each other, creating a cycle which breaks Bazel. This example shows you how to deal with that.
