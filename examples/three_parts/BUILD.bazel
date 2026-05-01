@@ -1,58 +1,93 @@
-load("@rules_lilypond//lilypond:defs.bzl", "lilypond_pdf", "lilypond_library", "lilypond_parts_pdfs", "lilypond_book")
+load("@rules_lilypond//lilypond:defs.bzl", "lilypond_pdf", "lilypond_library", "lilypond_book")
+
+# For testing.
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@bazel_skylib//rules:select_file.bzl", "select_file")
 
 TITLE = "Excerpt from the 7th Symphony"
 COMPOSER = "Gustav Mahler"
-DEP_MAP = {
-    ":tpt1": "tptOne",
-    ":tpt2": "tptTwo",
-    ":tpt3": "tptThree",
-}
-MUSIC_INST_MAP = {
-    "tptOne": "Trumpet I in Bb",
-    "tptTwo": "Trumpet II in Bb",
-    "tptThree": "Trumpet III in Bb",
-}
-MUSIC_SHORT_INST_MAP = {
-    "tptOne": "Tpt I",
-    "tptTwo": "Tpt II",
-    "tptThree": "Tpt III",
-}
 
 lilypond_pdf(
     name = "score",
     deps = [":score_book"],
 )
 
-lilypond_parts_pdfs(
+lilypond_pdf(
     name = "parts",
-    music_inst_map = MUSIC_INST_MAP,
-    title = TITLE,
-    composer = COMPOSER,
+    deps = [":parts_book"],
     warning_as_error = False,  # TODO: Fix "decrescendo too small".
-    dep_map = DEP_MAP,
 )
 
 lilypond_book(
     name = "score_book",
     skip_bars = False,
-    music_inst_map = MUSIC_INST_MAP,
-    music_short_inst_map = MUSIC_SHORT_INST_MAP,
     title = TITLE,
     composer = COMPOSER,
-    deps = DEP_MAP.keys(),
+    deps = [
+        ":tpt1_notes",
+        ":tpt2_notes",
+        ":tpt3_notes",
+    ],
+)
+
+lilypond_book(
+    name = "parts_book",
+    parts = True,
+    title = TITLE,
+    composer = COMPOSER,
+    deps = [
+        ":tpt1_notes",
+        ":tpt2_notes",
+        ":tpt3_notes",
+    ],
 )
 
 lilypond_library(
-    name = "tpt1",
+    name = "tpt1_notes",
     srcs = ["tpt1-notes.ly"],
+    music_var = "tptOne",
+    instrument = "Trumpet I in Bb",
+    short_instrument = "Tpt I",
 )
 
 lilypond_library(
-    name = "tpt2",
+    name = "tpt2_notes",
     srcs = ["tpt2-notes.ly"],
+    music_var = "tptTwo",
+    instrument = "Trumpet II in Bb",
+    short_instrument = "Tpt II",
 )
 
 lilypond_library(
-    name = "tpt3",
+    name = "tpt3_notes",
     srcs = ["tpt3-notes.ly"],
+    music_var = "tptThree",
+    instrument = "Trumpet III in Bb",
+    short_instrument = "Tpt III",
 )
+
+# The remainder of the file is for testing. You may disregard.
+
+diff_test(
+    name = "score_book_test",
+    file1 = "testdata/score_book.ly",
+    file2 = ":score_book",
+)
+
+PART_NAMES = [
+    "Trumpet_I_in_Bb",
+    "Trumpet_II_in_Bb",
+    "Trumpet_III_in_Bb",
+]
+
+[diff_test(
+    name = "parts_book_{}_test".format(name),
+    file1 = "testdata/parts_book_{}.ly".format(name),
+    file2 = ":parts_book_{}".format(name),
+) for name in PART_NAMES]
+
+[select_file(
+    name = "parts_book_{}".format(name),
+    srcs = ":parts_book",
+    subpath = "parts_book_{}.ly".format(name),
+) for name in PART_NAMES]

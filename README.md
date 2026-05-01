@@ -79,8 +79,8 @@ As an additional step, it is highly recommended to pin the version of Bazel itse
 
 This is one of the more fiddly bits of LilyPond: creating a separate book for each part, and one for the score. `rules_lilypond` can help.
 
-There is a rule `lilypond_book` which synthesizes an `.ly` file from one or more "notes" variables taken as dependencies. There is a rule `lilypond_library` so that you can define these dependencies (and their dependencies, e.g. for cues or utilities), which will be `\include`d into the file synthesized by any and all `lilypond_book`s that depend on them. There's also a macro `lilypond_parts_pdfs` which can generate all the `lilypond_book` targets in one go; it also produces a single `lilypond_pdf` target which produces a separate PDF for each book, while still only rebuilding the ones which changed since the last build.
+There is a rule `lilypond_book` which synthesizes an `.ly` file from one or more "notes" variables taken as dependencies to produce a score. There is a rule `lilypond_library` so that you can define these dependencies (and their dependencies, e.g. for cues or utilities), as well as define what instrument and movement they represent. These will be `\include`d into the `.ly` file synthesized by `lilypond_book`. You can also set `parts = True` on `lilypond_book`, and it will generate multiple `.ly` files, one for each part. To render, simply create a `lilypond_pdf` target as above, and add your book(s) to its `deps` instead of specifying `srcs`; a separate PDF will be generated for each book, and it will do so incrementally and in parallel.
 
-The end result is a directory containing `.ly` files with only notes in them, plus a concise `BUILD.bazel` file which includes a target that incrementally builds a PDF for every part in your project.
+The end result is your directory just containing `.ly` files with only notes in them, plus a `BUILD.bazel` file succinctly describing the structure of your project.
 
 To see all this in action, look at the [examples](examples/).

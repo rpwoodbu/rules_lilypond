@@ -1,13 +1,11 @@
 load("//lilypond/private:provider.bzl", "LilyPondProvider")
 load("//:extensions.bzl", "LILYPOND_VERSION")
 
-def lilypond_book_impl(ctx):
-    includes_depsets = [d[LilyPondProvider].includes for d in ctx.attr.deps]
-    includes = [i.path for ds in includes_depsets for i in ds.to_list()]
-
+# Common logic for generating scores and parts.
+def _generate_book(ctx, name, includes, movement_dep_map, instrument, quotes):
     header = []
-    if ctx.attr.instrument:
-        header.append('instrument = "{}"'.format(ctx.attr.instrument))
+    if instrument:
+        header.append('instrument = "{}"'.format(instrument))
     if ctx.attr.composer:
         header.append('composer = "{}"'.format(ctx.attr.composer))
     if ctx.attr.title:
@@ -20,40 +18,18 @@ def lilypond_book_impl(ctx):
     subs.add("{INCLUDES}", "\n".join(['\\include "{}"'.format(i) for i in includes]))
     subs.add("{PAPER}", "\n".join(ctx.attr.paper))
     subs.add("{HEADER}", "\n".join(header))
-    subs.add("{QUOTES}", "\n".join(['\\addQuote "{}" {{ \\{} }}'.format(ref, music) for music, ref in ctx.attr.quotes.items()]))
-
-    # Movement map needs to be integrated first to preserve movement order.
-    music_map = {}
-    movement_map = {}
-    if ctx.attr.music_var:
-        if len(ctx.attr.music_mvmt_map) > 0:
-            fail("Use only one of `music_var` or `music_mvmt_map`")
-        music_map[ctx.attr.music_var] = {}
-    for music, movement in ctx.attr.music_mvmt_map.items():
-        movement_map.setdefault(movement, []).append(music)
-    for music, instrument in ctx.attr.music_inst_map.items():
-        music_map.setdefault(music, {})["instrument"] = instrument
-    for music, short_instrument in ctx.attr.music_short_inst_map.items():
-        music_map.setdefault(music, {})["short_instrument"] = short_instrument
-    if ctx.attr.instrument:
-        if len(ctx.attr.music_inst_map) > 0:
-            fail("Use only one of `instrument` or `music_inst_map`")
-        for music in music_map:
-            music_map[music]["instrument"] = ctx.attr.instrument
-    if len(movement_map) == 0:
-        # No movements specified. Assume all music is part of the same unnamed
-        # movement.
-        movement_map[""] = music_map.keys()
+    subs.add("{QUOTES}", "\n".join(
+        ['\\addQuote "{}" {{ \\{} }}'.format(ref, music) for music, ref in quotes.items()]))
 
     scores = []
-    for movement, music_vars in movement_map.items():
+    for movement, deps in movement_dep_map.items():
         scores.extend([
             '\\score {',
             '  {',
             '    \\new StaffGroup <<',
         ])
 
-        for music in music_vars:
+        for dep in deps:
             if ctx.attr.staff_with:
                 scores.append('      \\new Staff \\with {{ {} }} {{'.format(ctx.attr.staff_with))
             else:
@@ -61,14 +37,14 @@ def lilypond_book_impl(ctx):
             if ctx.attr.skip_bars:
                 scores.append('        \\set Score.skipBars = ##t') 
             else:
-                scores.append('        \\set Staff.instrumentName = "{}"'.format(music_map[music]["instrument"]))
-                short_name = music_map[music].get("short_instrument")
+                scores.append('        \\set Staff.instrumentName = "{}"'.format(dep[LilyPondProvider].instrument))
+                short_name = dep[LilyPondProvider].short_instrument
                 if short_name != None:
                     scores.append('        \\set Staff.shortInstrumentName = "{}"'.format(short_name))
 
             scores.extend(ctx.attr.staff)
             scores.extend([
-                '        \\{}'.format(music),
+                '        \\{}'.format(dep[LilyPondProvider].music_var),
                 '      }',
             ])
 
@@ -81,43 +57,116 @@ def lilypond_book_impl(ctx):
 
     subs.add("{SCORES}", "\n".join(scores))
 
-    out = ctx.actions.declare_file(ctx.label.name + ".ly")
+    out = ctx.actions.declare_file(name + ".ly")
     ctx.actions.expand_template(
         output = out,
         template = ctx.file.template,
         computed_substitutions = subs,
     )
 
+    return out
+
+# Generate a full score containing all parts.
+def _generate_score(ctx):
+    includes_depsets = [d[LilyPondProvider].includes for d in ctx.attr.deps]
+    includes = [i.path for ds in includes_depsets for i in ds.to_list()]
+
+    movement_dep_map = {}
+    instruments = set()
+    quotes = {}
+    for dep in ctx.attr.deps:
+        movement_dep_map.setdefault(dep[LilyPondProvider].movement, []).append(dep)
+        instrument = dep[LilyPondProvider].instrument
+        if instrument:
+            instruments.add(instrument)
+        quotes.update(dep[LilyPondProvider].quotes)
+
+    instrument = None
+    if ctx.attr.instrument:
+       instrument = ctx.attr.instrument 
+    elif len(instruments) == 1:
+        # This is a single part. Show the instrument name.
+        instrument = instruments.pop()
+
+    out = _generate_book(
+        ctx, ctx.attr.name, includes, movement_dep_map, instrument, quotes)
     return [
         DefaultInfo(files = depset([out])),
-        LilyPondProvider(includes = depset(transitive = includes_depsets)),
+        LilyPondProvider(
+            includes = depset(transitive = includes_depsets),
+            renderables = [struct(
+                name = ctx.attr.name,
+                renderable_file = depset([out]),
+                transitive = depset(transitive = includes_depsets),
+            )],
+        ),
     ]
+
+# Generate a separate book for each part. Each book will contain all movements
+# for that part.
+def _generate_parts(ctx):
+    if ctx.attr.instrument:
+        fail("Cannot specify instrument name when generating parts.")
+
+    if ctx.attr.instrument:
+        fail("Cannot specify instrument name when generating parts.")
+
+    instrument_movement_dep_map = {}
+    for dep in ctx.attr.deps:
+        if dep[LilyPondProvider].music_var == "":
+            continue
+        instrument_movement_dep_map \
+            .setdefault(dep[LilyPondProvider].instrument, {}) \
+            .setdefault(dep[LilyPondProvider].movement, []) \
+            .append(dep)
+
+    books = []
+    renderables = []
+    for instrument, movement_dep_map in instrument_movement_dep_map.items():
+        includes_depset = depset(
+            transitive = [d[LilyPondProvider].includes for deps in movement_dep_map.values() for d in deps])
+        quotes = {}
+        name = instrument.replace(" ", "_")
+        for deps in movement_dep_map.values():
+            for dep in deps:
+                quotes.update(dep[LilyPondProvider].quotes)
+        book = _generate_book(
+            ctx,
+            "{}_{}".format(ctx.attr.name, name),
+            [i.path for i in includes_depset.to_list()],
+            movement_dep_map,
+            instrument,
+            quotes = quotes,
+        )
+        books.append(book)
+        renderables.append(struct(
+            name = name,
+            renderable_file = depset([book]),
+            transitive = includes_depset,
+        ))
+
+    return [
+        DefaultInfo(files = depset(books)),
+        LilyPondProvider(
+            renderables = renderables,
+        ),
+    ]
+
+def _lilypond_book_impl(ctx):
+    if ctx.attr.parts:
+        return _generate_parts(ctx)
+    else:
+        return _generate_score(ctx)
 
 lilypond_book = rule(
     doc = """Generates a LilyPond "book" file.""",
-    implementation = lilypond_book_impl,
+    implementation = _lilypond_book_impl,
     attrs = {
-        "music_mvmt_map": attr.string_dict(
-            doc = """Map of LilyPond variables containing music to movement names.
-
-Set movement to the empty string to omit. Use `music_var` for single movements.
-    """,
-        ),
-        "music_inst_map": attr.string_dict(
-            doc = """Map of LilyPond variables containing music for the score to
-their instrument names.
-
-Use `instrument` for single instruments.
-    """,
-        ),
-        "music_short_inst_map": attr.string_dict(
-            doc = "Map of LilyPond variables containing music for the score to their short instrument names.",
-        ),
-        "music_var": attr.string(
-            doc = "LilyPond variable containing music for the part. Do not use with `music_mvmt_map`.",
-        ),
         "instrument": attr.string(
-            doc = "Name of instrument. Do not use with `music_inst_map`.",
+            doc = "Override name of instrument. Usually the instrument name " +
+                  "flows from the `lilypond_library`, but this is useful " +
+                  "when combining parts into a single book. Cannot be used " +
+                  "if `parts` is True. ",
         ),
         "composer": attr.string(
             doc = "Name of composer.",
@@ -128,6 +177,11 @@ Use `instrument` for single instruments.
         "subtitle": attr.string(
             doc = "Subtitle of piece.",
         ),
+        "parts": attr.bool(
+            doc = "Whether to generate separate books for each part. If " +
+                  "False, a single book (full score) will be generated.",
+            default = False,
+        ),
         "skip_bars": attr.bool(
             doc = "Whether to produce multimeasure rests. Set this to " +
                   "`False` for full scores.",
@@ -135,9 +189,6 @@ Use `instrument` for single instruments.
         ),
         "paper": attr.string_list(
             doc = "List of settings for \\paper.",
-        ),
-        "quotes": attr.string_dict(
-            doc = "Map of LilyPond variables containing music for \\addQuote to their referenced names.",
         ),
         "staff": attr.string_list(
             doc = "List of settings for each \\staff.",

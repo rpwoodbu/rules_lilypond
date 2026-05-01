@@ -6,3 +6,6 @@ bazel_dep(name = "rules_shell", version = "0.8.0")
 lilypond = use_extension("//:extensions.bzl", "lilypond")
 
 use_repo(lilypond, "lilypond")
+
+# For testing.
+bazel_dep(name = "bazel_skylib", version = "1.9.0", dev_dependency = True)
