@@ -6,7 +6,7 @@
 
 ### Hermeticity
 
-LilyPond is very sensitive to which version you use, even when using the `\version` statement. `rules_lilypond` downloads a precise version of LilyPond (see [extensions.bzl](extensions.bzl) for which one) and executes it hermetically, ensuring that you always use the version you mean to use, even if coming back to your project months or years later.
+LilyPond is very sensitive to which version you use, even when using the `\version` statement. `rules_lilypond` downloads a precise version of LilyPond (see [extensions.bzl](lilypond/extensions.bzl) for which one) and executes it hermetically, ensuring that you always use the version you mean to use, even if coming back to your project months or years later.
 
 **You don't even need to have LilyPond or Bazel installed on your machine!** All you need is [Bazelisk](https://github.com/bazelbuild/bazelisk) (a small Bazel launcher).
 
