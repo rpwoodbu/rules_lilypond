@@ -26,13 +26,13 @@ In order to produce numerous parts and scores, there is a lot of boilerplate and
 `rules_lilypond` is not in the [Bazel Central Registry](https://registry.bazel.build/) (yet), so we need to use `archive_override`. Put this in your `MODULE.bazel`:
 
 ```python
-bazel_dep(name = "rules_lilypond", version = "0.0.5")
+bazel_dep(name = "rules_lilypond", version = "0.0.6")
 
 archive_override(
     module_name = "rules_lilypond",
-    urls = ["https://github.com/rpwoodbu/rules_lilypond/archive/73752a8e196b64ba98e3ef9e32cbd2e672579c92.tar.gz"],
-    integrity = "sha256-QcO4SfcFV2oOpNkMXoKifH+hUHBYCbpQi+/MXPFv1OE=",
-    strip_prefix = "rules_lilypond-73752a8e196b64ba98e3ef9e32cbd2e672579c92",
+    urls = ["https://github.com/rpwoodbu/rules_lilypond/archive/28b9286a3f929e806f55929d591c14ab45b6ddf4.tar.gz"],
+    integrity = "sha256-bKg3IE2u/xNHqYayOPM/AtrfakFI1uDiqqAvkgV+uBE=",
+    strip_prefix = "rules_lilypond-28b9286a3f929e806f55929d591c14ab45b6ddf4",
 )
 ```
 
