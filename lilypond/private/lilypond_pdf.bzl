@@ -16,6 +16,8 @@ def _generate_pdf(ctx, name, src, deps):
         args.add("--loglevel=WARN")
     if ctx.attr.warning_as_error:
         args.add("-dwarning-as-error")
+    if ctx.var["COMPILATION_MODE"] == "opt":
+        args.add("-dno-point-and-click")
     args.add("--include", ctx.workspace_name)
     args.add(src)
 

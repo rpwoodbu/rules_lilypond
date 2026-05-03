@@ -55,6 +55,12 @@ See the results:
 - [Soprano](https://rpwoodbu.github.io/rules_lilypond/cycles_Soprano.pdf)
 - [Bass](https://rpwoodbu.github.io/rules_lilypond/cycles_Bass.pdf)
 
+# Tips and tricks
+
+## No "point-and-click" when building with `-c opt`
+
+When building the final PDFs (i.e., a release build), use `bazel build -c opt`. This will prevent those "point-and-click" links from being embedded in the PDFs. While useful for debugging, those links are not helpful when distributing files, can include private information, and can interfere with page turning when used with digital music displays.
+
 ## Stamp revision information
 
 If you are tracking your music with an SCM (e.g. Git), you may want to stamp your PDFs with the revision number (e.g. commit SHA). This repository is already setup for this, so you can use it as an example. See the [.bazelrc](../.bazelrc) for the flags needed to enable stamping, and see the referenced [shell script](../tools/get_workspace_status.sh) which Bazel will run on each build to gather the information. Salt to taste.
