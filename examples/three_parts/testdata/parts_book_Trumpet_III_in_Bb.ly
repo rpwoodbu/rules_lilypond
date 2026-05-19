@@ -6,15 +6,45 @@
          (string-append "- Revision " val)
          "")))
 
+#(define scm-short-rev
+   (let ((val (getenv "BUILD_SCM_SHORT_REVISION")))
+     (if val
+         val
+         "")))
+
 #(define scm-status
    (let ((val (getenv "BUILD_SCM_STATUS")))
      (if (and val (string=? val "Modified"))
          (string-append "(" val ")")
          "")))
 
+customLastPageFooter = \markup \fill-line {
+    \line { "LilyPond" #(lilypond-version) #scm-rev #scm-status }
+}
+
+customFooter = \markup \line { #scm-short-rev #scm-status }
+
 \include "examples/three_parts/tpt3-notes.ly"
 
 \paper {
+    oddFooterMarkup = \markup {
+        \if \on-last-page \customLastPageFooter
+        \unless \on-last-page \teeny \fill-line {
+            \line {}
+            \line {}
+            \customFooter
+        }
+    }
+
+    evenFooterMarkup = \markup {
+        \if \on-last-page \customLastPageFooter
+        \unless \on-last-page \teeny \fill-line {
+            \customFooter
+            \line {}
+            \line {}
+        }
+    }
+
 
 }
 
@@ -22,9 +52,6 @@
 instrument = "Trumpet III in Bb"
 composer = "Gustav Mahler"
 title = "Excerpt from the 7th Symphony"
-    tagline = \markup {
-        "LilyPond" #(lilypond-version) #scm-rev #scm-status
-    }
 }
 
 

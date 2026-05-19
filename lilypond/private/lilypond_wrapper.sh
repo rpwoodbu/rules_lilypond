@@ -11,6 +11,7 @@ if [[ -n "${RULES_LILYPOND_STABLE_STATUS:-}" ]]; then
     while read -r key value; do
         case "${key}" in
             STABLE_BUILD_SCM_REVISION) export BUILD_SCM_REVISION="$value" ;;
+            STABLE_BUILD_SCM_SHORT_REVISION) export BUILD_SCM_SHORT_REVISION="$value" ;;
             STABLE_BUILD_SCM_STATUS) export BUILD_SCM_STATUS="$value" ;;
         esac
     done < "${RULES_LILYPOND_STABLE_STATUS}"
