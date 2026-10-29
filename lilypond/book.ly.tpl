@@ -47,7 +47,7 @@ customFooter = \markup \line { #scm-short-rev #scm-status }
 
 {PAPER}
 }
-
+{LAYOUT}
 \header {
 {HEADER}
 }

@@ -16,6 +16,10 @@ def _generate_book(ctx, name, includes, movement_dep_map, instrument, quotes, qu
     subs = ctx.actions.template_dict()
     subs.add("{VERSION}", LILYPOND_VERSION)
     subs.add("{INCLUDES}", "\n".join(['\\include "{}"'.format(i) for i in includes]))
+    layout = ""
+    if ctx.attr.layout:
+        layout = "\n\\layout {\n" + "\n".join(ctx.attr.layout) + "\n}\n"
+    subs.add("{LAYOUT}", layout)
     subs.add("{PAPER}", "\n".join(ctx.attr.paper))
     subs.add("{HEADER}", "\n".join(header))
     subs.add("{QUOTES}", "\n".join(
@@ -207,6 +211,9 @@ lilypond_book = rule(
         ),
         "paper": attr.string_list(
             doc = "List of settings for \\paper.",
+        ),
+        "layout": attr.string_list(
+            doc = "List of settings for \\layout.",
         ),
         "staff": attr.string_list(
             doc = "List of settings for each \\staff.",
