@@ -1,0 +1,40 @@
+load("@rules_lilypond//lilypond:defs.bzl", "lilypond_pdf", "lilypond_library", "lilypond_book")
+
+# For testing.
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+
+lilypond_pdf(
+    name = "cues",
+    deps = [":cue_book"],
+)
+
+lilypond_book(
+    name = "cue_book",
+    title = "A Cue",
+    composer = "Anonymous",
+    deps = [":flute"],
+)
+
+lilypond_library(
+    name = "flute",
+    srcs = ["flute.ly"],
+    music_var = "flute",
+    instrument = "Flute",
+    deps = [":theme"],
+)
+
+lilypond_library(
+    name = "theme",
+    srcs = ["theme.ly"],
+    quotes = {
+        "theme": "theme",
+    },
+)
+
+# The remainder of the file is for testing. You may disregard.
+
+diff_test(
+    name = "cue_book_test",
+    file1 = "testdata/cue_book.ly",
+    file2 = ":cue_book",
+)

@@ -43,9 +43,22 @@ See the results:
     - [Soprano](https://rpwoodbu.github.io/rules_lilypond/movements_Soprano.pdf)
     - [Bass](https://rpwoodbu.github.io/rules_lilypond/movements_Bass.pdf)
 
-## Cues and cycles
+## Cues
 
-To do cues which "quote" other parts, you would ordinarily depend on the `lilypond_library` that defines the cued notes. But sometimes two parts take cues from each other, creating a cycle which breaks Bazel. This example shows you how to deal with that.
+To cue ("quote") music from another part, add the library that defines the quoted music as a dependency. Its quote definitions are inherited by the dependent library, so the resulting book includes the corresponding `\addQuote` statement.
+
+```sh
+bazel build //examples/cues
+```
+
+[See the result.](https://rpwoodbu.github.io/rules_lilypond/cues.pdf)
+
+The [publish-examples workflow](../.github/workflows/publish-examples.yml)
+publishes the PDF to GitHub Pages when changes are pushed to `main`.
+
+## Cyclic cues
+
+When two parts cue each other, depending on each other's libraries creates a cycle that Bazel cannot build. The cycles example avoids this by putting both parts' music files in each library and defining each part's quote locally.
 
 ```sh
 bazel build //examples/cycles

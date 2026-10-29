@@ -1,6 +1,11 @@
 load("//lilypond/private:provider.bzl", "LilyPondProvider")
 
 def _lilypond_library_impl(ctx):
+    quotes = {}
+    for dep in ctx.attr.deps:
+        quotes.update(dep[LilyPondProvider].quotes)
+    quotes.update(ctx.attr.quotes)
+
     return [
         DefaultInfo(
             files = depset(ctx.files.srcs),
@@ -10,7 +15,7 @@ def _lilypond_library_impl(ctx):
             movement = ctx.attr.movement,
             instrument = ctx.attr.instrument,
             short_instrument = ctx.attr.short_instrument,
-            quotes = ctx.attr.quotes,
+            quotes = quotes,
             includes = depset(
                 ctx.files.srcs,
                 transitive = [d[LilyPondProvider].includes for d in ctx.attr.deps],
