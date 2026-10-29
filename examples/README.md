@@ -56,6 +56,19 @@ bazel build //examples/cues
 The [publish-examples workflow](../.github/workflows/publish-examples.yml)
 publishes the PDF to GitHub Pages when changes are pushed to `main`.
 
+## Transposition
+
+The same trumpet part, written in C, can be used for both C and B-flat trumpet
+by overriding its transposition in downstream libraries. Its cues quote flute
+music in C and clarinet music in B-flat; each `\addQuote` includes the source
+part's transposition so the cues sound at the correct pitch.
+
+```sh
+bazel build //examples/transposition
+```
+
+[See the result.](https://rpwoodbu.github.io/rules_lilypond/transposition.pdf)
+
 ## Cyclic cues
 
 When two parts cue each other, depending on each other's libraries creates a cycle that Bazel cannot build. The cycles example avoids this by putting both parts' music files in each library and defining each part's quote locally.

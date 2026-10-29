@@ -2,7 +2,7 @@ load("//lilypond/private:provider.bzl", "LilyPondProvider")
 load("//lilypond:extensions.bzl", "LILYPOND_VERSION")
 
 # Common logic for generating scores and parts.
-def _generate_book(ctx, name, includes, movement_dep_map, instrument, quotes):
+def _generate_book(ctx, name, includes, movement_dep_map, instrument, quotes, quote_transpositions):
     header = []
     if instrument:
         header.append('instrument = "{}"'.format(instrument))
@@ -19,7 +19,14 @@ def _generate_book(ctx, name, includes, movement_dep_map, instrument, quotes):
     subs.add("{PAPER}", "\n".join(ctx.attr.paper))
     subs.add("{HEADER}", "\n".join(header))
     subs.add("{QUOTES}", "\n".join(
-        ['\\addQuote "{}" {{ \\{} }}'.format(ref, music) for music, ref in quotes.items()]))
+        [
+            '\\addQuote "{}" {{ {}\\{} }}'.format(
+                ref,
+                '\\transposition {} '.format(quote_transpositions[music]) if music in quote_transpositions else "",
+                music,
+            )
+            for music, ref in quotes.items()
+        ]))
 
     scores = []
     for movement, deps in movement_dep_map.items():
@@ -30,8 +37,14 @@ def _generate_book(ctx, name, includes, movement_dep_map, instrument, quotes):
         ])
 
         for dep in deps:
+            staff_with = []
+            transposition = dep[LilyPondProvider].transposition
+            if transposition:
+                staff_with.append("\\transposition {}".format(transposition))
             if ctx.attr.staff_with:
-                scores.append('      \\new Staff \\with {{ {} }} {{'.format(ctx.attr.staff_with))
+                staff_with.append(ctx.attr.staff_with)
+            if staff_with:
+                scores.append('      \\new Staff \\with {{ {} }} {{'.format(" ".join(staff_with)))
             else:
                 scores.append('      \\new Staff {')
             if ctx.attr.skip_bars:
@@ -69,17 +82,19 @@ def _generate_book(ctx, name, includes, movement_dep_map, instrument, quotes):
 # Generate a full score containing all parts.
 def _generate_score(ctx):
     includes_depsets = [d[LilyPondProvider].includes for d in ctx.attr.deps]
-    includes = [i.path for ds in includes_depsets for i in ds.to_list()]
+    includes = [i.path for i in depset(transitive = includes_depsets).to_list()]
 
     movement_dep_map = {}
     instruments = set()
     quotes = {}
+    quote_transpositions = {}
     for dep in ctx.attr.deps:
         movement_dep_map.setdefault(dep[LilyPondProvider].movement, []).append(dep)
         instrument = dep[LilyPondProvider].instrument
         if instrument:
             instruments.add(instrument)
         quotes.update(dep[LilyPondProvider].quotes)
+        quote_transpositions.update(dep[LilyPondProvider].quote_transpositions)
 
     instrument = None
     if ctx.attr.instrument:
@@ -89,7 +104,7 @@ def _generate_score(ctx):
         instrument = instruments.pop()
 
     out = _generate_book(
-        ctx, ctx.attr.name, includes, movement_dep_map, instrument, quotes)
+        ctx, ctx.attr.name, includes, movement_dep_map, instrument, quotes, quote_transpositions)
     return [
         DefaultInfo(files = depset([out])),
         LilyPondProvider(
@@ -126,10 +141,12 @@ def _generate_parts(ctx):
         includes_depset = depset(
             transitive = [d[LilyPondProvider].includes for deps in movement_dep_map.values() for d in deps])
         quotes = {}
+        quote_transpositions = {}
         name = instrument.replace(" ", "_")
         for deps in movement_dep_map.values():
             for dep in deps:
                 quotes.update(dep[LilyPondProvider].quotes)
+                quote_transpositions.update(dep[LilyPondProvider].quote_transpositions)
         book = _generate_book(
             ctx,
             "{}_{}".format(ctx.attr.name, name),
@@ -137,6 +154,7 @@ def _generate_parts(ctx):
             movement_dep_map,
             instrument,
             quotes = quotes,
+            quote_transpositions = quote_transpositions,
         )
         books.append(book)
         renderables.append(struct(

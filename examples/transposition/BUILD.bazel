@@ -1,0 +1,73 @@
+load("@rules_lilypond//lilypond:defs.bzl", "lilypond_pdf", "lilypond_library", "lilypond_book")
+
+# For testing.
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+
+lilypond_pdf(
+    name = "transposition",
+    deps = [":transposition_book"],
+)
+
+lilypond_book(
+    name = "transposition_book",
+    title = "Transposition",
+    composer = "Anonymous",
+    skip_bars = False,
+    deps = [
+        ":flute",
+        ":clarinet",
+        ":trumpet_c",
+        ":trumpet_bb",
+    ],
+)
+
+lilypond_library(
+    name = "flute",
+    srcs = ["flute.ly"],
+    music_var = "flute",
+    instrument = "Flute",
+    transposition = "c'",
+)
+
+lilypond_library(
+    name = "clarinet",
+    srcs = ["clarinet.ly"],
+    music_var = "clarinet",
+    instrument = "Clarinet in Bb",
+    transposition = "bes",
+)
+
+lilypond_library(
+    name = "trumpet_c",
+    srcs = ["trumpet_c.ly"],
+    music_var = "trumpet_c",
+    instrument = "Trumpet I in C",
+    transposition = "c'",
+    quotes = {
+        "flute": "flute",
+        "clarinet": "clarinet",
+    },
+    deps = [
+        ":flute",
+        ":clarinet",
+    ],
+)
+
+lilypond_library(
+    name = "trumpet_bb",
+    srcs = ["trumpet_bb.ly"],
+    music_var = "trumpet_bb",
+    instrument = "Trumpet I in Bb",
+    transposition = "bes",
+    deps = [
+        ":trumpet_c",
+    ],
+)
+
+# The remainder of the file is for testing. You may disregard.
+
+diff_test(
+    name = "transposition_book_test",
+    file1 = "testdata/transposition_book.ly",
+    file2 = ":transposition_book",
+)
